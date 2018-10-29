@@ -1,25 +1,31 @@
-package SensorTesting;
+package HardwareTesting;
 
 import lejos.hardware.Button;
 import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.lcd.TextLCD;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
 
-public class MotorTesting {
+public class MotorTesting extends Thread{
 
-	private static final EV3LargeRegulatedMotor testingMotor = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("A"));
+	private static EV3LargeRegulatedMotor testingMotor; 
 	
-	private static final EV3LargeRegulatedMotor leftMotor = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("A"));
-	private static final EV3LargeRegulatedMotor rightMotor = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("D"));
+	private static EV3LargeRegulatedMotor leftMotor; 
+	private static EV3LargeRegulatedMotor rightMotor;
 	
 	private static final TextLCD lcd = LocalEV3.get().getTextLCD();
 	
-	public static final double WHEEL_RAD = 2.2;
-	public static final double WHEEL_BASE = 10.45;
+	public static double WHEEL_RAD;
+	public static double WHEEL_BASE;
+	public static double ROTATE_SPEED = 150;
 	
 	public static int testingTheta = 45;
 	
-	public static void main(String[] args) {
+	public MotorTesting(double WHEEL_RAD, double WHEEL_BASE) {
+		this.WHEEL_RAD = WHEEL_RAD;
+		this.WHEEL_BASE = WHEEL_BASE;
+	}
+	
+	public void run() {
 		
 		// init thread to exit application
 		Thread exitThread = new Thread() {
@@ -54,6 +60,7 @@ public class MotorTesting {
 		 */
 		if (buttonChoice == Button.ID_LEFT) { 
 			
+			this.testingMotor = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("A"));
 			
 			// clear the display
 			lcd.clear();
@@ -121,6 +128,9 @@ public class MotorTesting {
 		 * Go through 10 runs, stop after each turn until a button is pressed
 		 */
 		else {
+			
+			this.leftMotor = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("A"));
+			this.rightMotor = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("D"));
 			
 			// clear the display
 			lcd.clear();
