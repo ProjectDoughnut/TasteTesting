@@ -54,6 +54,7 @@ public class HardwareMain {
 		
 		MotorTesting motorTest = new MotorTesting(WHEEL_RAD, WHEEL_BASE);
 		RingColorTesting colorTest = new RingColorTesting(csValue);
+		USsensorTesting usTest = new USsensorTesting();
 		
 		do {
 			// clear the display
@@ -81,6 +82,11 @@ public class HardwareMain {
 			Thread colorThread = new Thread(colorTest);
 			colorThread.start();
 			
+		}
+		if(buttonChoice == Button.ID_ENTER){
+		  
+		  Thread usThread = new Thread(usTest);
+		  usThread.start();
 		}
 		
 
