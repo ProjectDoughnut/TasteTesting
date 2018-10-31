@@ -15,15 +15,14 @@ public class HardwareMain {
 	
 	private static final EV3LargeRegulatedMotor leftMotor = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("A"));
 	private static final EV3LargeRegulatedMotor rightMotor = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("D"));
-
-	//private static final Port usPort = LocalEV3.get().getPort("S4");
+	
 	//private static final Port gyroPort = LocalEV3.get().getPort("S2");
 
 
 
 	//Setting up ultrasonic sensor
-	//public static UARTSensor usSensor = new EV3UltrasonicSensor(usPort);
-	//public static SampleProvider usValue = usSensor.getMode("Distance");
+	public static UARTSensor usSensor = new EV3UltrasonicSensor(usPort);
+	public static SampleProvider usValue = usSensor.getMode("Distance");
 
 	//Setting up gyro sensor 
 	//public static EV3GyroSensor gyroSensor = new EV3GyroSensor(gyroPort);
@@ -51,14 +50,7 @@ public class HardwareMain {
 		exitThread.start();
 
 		int buttonChoice;
-<<<<<<< HEAD
 
-=======
-		
-		MotorTesting motorTest = new MotorTesting(WHEEL_RAD, WHEEL_BASE);
-		RingColorTesting colorTest = new RingColorTesting(csValue);
-		USsensorTesting usTest = new USsensorTesting();
->>>>>>> db2b3a1f9b6f92a37a08dfebe6b53952a10b836a
 		
 		do {
 			// clear the display
@@ -97,8 +89,10 @@ public class HardwareMain {
 		}
 		if(buttonChoice == Button.ID_ENTER){
 		  
-		  Thread usThread = new Thread(usTest);
-		  usThread.start();
+			final Port usPort = LocalEV3.get().getPort("S4");
+			USSensorTest usTest = new USSensorTest(usPort);
+			Thread usThread = new Thread(usTest);
+			usThread.start();
 		}
 		
 		else if (buttonChoice == Button.ID_ENTER) { 
