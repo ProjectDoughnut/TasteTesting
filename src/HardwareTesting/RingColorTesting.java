@@ -1,6 +1,7 @@
 package HardwareTesting;
 
 
+import lejos.hardware.Button;
 import lejos.hardware.lcd.LCD;
 import lejos.robotics.SampleProvider;
 
@@ -38,6 +39,9 @@ public class RingColorTesting extends Thread{
 	}
 	
 	public void run() {
+		int buttonChoice = Button.waitForAnyPress();
+		while(buttonChoice != Button.ID_ENTER) {
+		LCD.clear();
 		detectedRing = null;
 
 		
@@ -60,9 +64,14 @@ public class RingColorTesting extends Thread{
 		if (ring != null) {
 			RingColorTesting.detectedRing = ring;
 			//Only use this if u want to print out the rgb values to the console!!!
-			System.out.println(detectedRing.toString() + " " + rgbValues[0] + "   " + rgbValues[1] + "    " + rgbValues[2]);
-			LCD.clear();
+			//System.out.println(detectedRing.toString() + " " + rgbValues[0] + "   " + rgbValues[1] + "    " + rgbValues[2]);
 			LCD.drawString("Color: " + detectedRing.toString(), 0, 0);
+			try {
+				Thread.sleep(400);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		
 		try {
@@ -70,6 +79,7 @@ public class RingColorTesting extends Thread{
 		} catch (Exception e) 
 		{
 		} // Poor man's timed sampling
+		}
 	}
 
 	public RingColors detectColor(float[] values) {
