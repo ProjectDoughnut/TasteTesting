@@ -8,6 +8,7 @@ import lejos.hardware.port.Port;
 import lejos.hardware.sensor.EV3ColorSensor;
 import lejos.hardware.sensor.EV3GyroSensor;
 import lejos.hardware.sensor.EV3UltrasonicSensor;
+import lejos.hardware.sensor.SensorMode;
 import lejos.hardware.sensor.UARTSensor;
 import lejos.robotics.SampleProvider;
 
@@ -20,10 +21,6 @@ public class HardwareMain {
 
 
 
-	//Setting up ultrasonic sensor
-	public static UARTSensor usSensor = new EV3UltrasonicSensor(usPort);
-	public static SampleProvider usValue = usSensor.getMode("Distance");
-
 	//Setting up gyro sensor 
 	//public static EV3GyroSensor gyroSensor = new EV3GyroSensor(gyroPort);
 	//public static SampleProvider gyroValue = gyroSensor.getMode("Angle");
@@ -34,8 +31,10 @@ public class HardwareMain {
 	private static final TextLCD lcd = LocalEV3.get().getTextLCD();
 
 	public static final double WHEEL_RAD = 2.2;
-	public static final double WHEEL_BASE = 10.45;
+	public static final double WHEEL_BASE = 10.8;
 	public static final double TILE_SIZE = 30.48;
+	
+	public static final String TestsList[] = {"Motors", "US", "Line", "Color", "Gyro"};
 	
 	
 	public static void main(String[] args) {
@@ -49,25 +48,29 @@ public class HardwareMain {
 		};
 		exitThread.start();
 
-		int buttonChoice;
 
-		
+		int buttonChoice;
+		int testChoice = 0;
 		do {
 			// clear the display
 			lcd.clear();
 
 			// ask the user whether the motors should drive in a square or float
-			lcd.drawString("< Left | Right >", 0, 0);
-			lcd.drawString("Motors |  US    ", 0, 1);
-			lcd.drawString(" Center: Line   ", 0, 2);
-			lcd.drawString(" ^ Up  |  Down  ", 0, 3);
-			lcd.drawString(" Color |  Gyro  ", 0, 4);
+			lcd.drawString("Select test:", 0, 0);
+			lcd.drawString(TestsList[(TestsList.length+testChoice-1) % TestsList.length], 0, 2);
+			lcd.drawString(TestsList[testChoice], 0, 3, true);
+			lcd.drawString(TestsList[(testChoice+1) % TestsList.length], 0, 4);
 
 			buttonChoice = Button.waitForAnyPress(); // Record choice (left or right press)
+			if (buttonChoice == Button.ID_UP) {
+				testChoice = (testChoice + TestsList.length - 1) % TestsList.length;
+			} else if (buttonChoice == Button.ID_DOWN) {
+				testChoice = (testChoice +1) % TestsList.length;
+			}
+		} while (buttonChoice != Button.ID_ENTER);
+		lcd.clear();
 
-		} while (buttonChoice != Button.ID_LEFT && buttonChoice != Button.ID_RIGHT && buttonChoice != Button.ID_UP && buttonChoice != Button.ID_DOWN && buttonChoice != Button.ID_ENTER);
-
-		if (buttonChoice == Button.ID_LEFT) {
+		if (testChoice == 0) {
 			
 			
 			MotorTesting motorTest = new MotorTesting(WHEEL_RAD, WHEEL_BASE);
@@ -76,7 +79,7 @@ public class HardwareMain {
 			motorThread.start();
 			
 		}
-		else if (buttonChoice == Button.ID_UP) { 
+		else if (testChoice == 3) { 
 			
 			final Port csPort = LocalEV3.get().getPort("S3");
 			EV3ColorSensor csSensor = new EV3ColorSensor(csPort);
@@ -87,7 +90,7 @@ public class HardwareMain {
 			colorThread.start();
 			
 		}
-		if(buttonChoice == Button.ID_ENTER){
+		else if(testChoice == 1){
 		  
 			final Port usPort = LocalEV3.get().getPort("S4");
 			USSensorTest usTest = new USSensorTest(usPort);
@@ -95,7 +98,7 @@ public class HardwareMain {
 			usThread.start();
 		}
 		
-		else if (buttonChoice == Button.ID_ENTER) { 
+		else if (testChoice == 2) { 
 			
 			final Port lsPort = LocalEV3.get().getPort("S1");
 			UARTSensor lsSensor = new EV3ColorSensor(lsPort);
@@ -106,6 +109,25 @@ public class HardwareMain {
 			
 			Thread lineThread = new Thread(lineTest);
 			lineThread.start();
+		} else if (testChoice == 4) {
+			Port gyroPort = LocalEV3.get().getPort("S2");
+			EV3GyroSensor gyroSensor = new EV3GyroSensor(gyroPort);
+			SampleProvider gyroValue = gyroSensor.getMode("Angle");
+			Odometer odo;
+
+			try {
+				odo = Odometer.getOdometer(leftMotor, rightMotor, WHEEL_BASE, WHEEL_RAD);
+				
+			} catch (OdometerExceptions e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				odo = null;
+			}
+			Navigation nav = new Navigation(odo, leftMotor, rightMotor, WHEEL_RAD, WHEEL_BASE, TILE_SIZE);
+			nav.setRunning(true);
+			GyroTester tester = new GyroTester(gyroValue, odo, nav);
+			Thread t = new Thread(tester);
+			t.start();
 			
 		}
 		

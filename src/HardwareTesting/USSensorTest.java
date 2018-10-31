@@ -51,8 +51,7 @@ public class USSensorTest extends Thread{
           }
     }
 
-      
-  }
+ 
   void turnTo(double currTheta, double destTheta) {
     // get theta difference
     double deltaTheta = destTheta - currTheta;
