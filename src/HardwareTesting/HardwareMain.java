@@ -51,7 +51,14 @@ public class HardwareMain {
 		exitThread.start();
 
 		int buttonChoice;
+<<<<<<< HEAD
 
+=======
+		
+		MotorTesting motorTest = new MotorTesting(WHEEL_RAD, WHEEL_BASE);
+		RingColorTesting colorTest = new RingColorTesting(csValue);
+		USsensorTesting usTest = new USsensorTesting();
+>>>>>>> db2b3a1f9b6f92a37a08dfebe6b53952a10b836a
 		
 		do {
 			// clear the display
@@ -87,6 +94,11 @@ public class HardwareMain {
 			Thread colorThread = new Thread(colorTest);
 			colorThread.start();
 			
+		}
+		if(buttonChoice == Button.ID_ENTER){
+		  
+		  Thread usThread = new Thread(usTest);
+		  usThread.start();
 		}
 		
 		else if (buttonChoice == Button.ID_ENTER) { 
