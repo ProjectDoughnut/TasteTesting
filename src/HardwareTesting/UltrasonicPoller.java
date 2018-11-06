@@ -1,90 +1,62 @@
 package HardwareTesting;
 
-import lejos.hardware.port.Port;
-import lejos.hardware.sensor.EV3UltrasonicSensor;
-import lejos.robotics.RangeFinder;
 import lejos.robotics.SampleProvider;
 
-public class UltrasonicPoller implements RangeFinder {
+/**
+ * Control of the wall follower is applied periodically by the UltrasonicPoller thread. The while
+ * loop at the bottom executes in a loop. Assuming that the us.fetchSample, and cont.processUSData
+ * methods operate in about 20mS, and that the thread sleeps for 50 mS at the end of each loop, then
+ * one cycle through the loop is approximately 70 mS. This corresponds to a sampling rate of 1/70mS
+ * or about 14 Hz.
+ */
+public class UltrasonicPoller extends Thread {
+	private SampleProvider us;
+	private USSensorTest cont;
+	private float[] usData;
+	public int distance;
+	public Odometer odo;
 
-    private static EV3UltrasonicSensor sensor;
-    private static SampleProvider sp;
-    private static float [] sample;
+	public volatile boolean running = true;
 
-    /**
-     * Creates UltraSonicSensor object. This is a wrapper class for EV3UltrasonicSensor.
-     * @param port SensorPort of EV3UltrasonicSensor device.
-     */
-    public UltrasonicPoller(Port port)
-    {
-        this.sensor = new EV3UltrasonicSensor(port);
-        this.sp = sensor.getDistanceMode();
-        this.sample = new float[sp.sampleSize()];
-    }
 
-    /**
-     * Returns the underlying EV3UltrasonicSensor object.
-     * @return Sensor object reference.
-     */
-    public EV3UltrasonicSensor getSensor()
-    {
-        return sensor;
-    }
+	public UltrasonicPoller(SampleProvider us, USSensorTest cont) throws OdometerExceptions {
+		this.us = us;
+		this.cont = cont;
+		this.usData = new float[us.sampleSize()];
+		this.running = true;
+		this.odo = Odometer.getOdometer();
+	}
 
-    /**
-     * Get range (distance) to object detected by UltraSonic sensor.
-     * @return Distance in meters.
-     */
-    @Override
-    public float getRange()
-    {
-            sp.fetchSample(sample, 0);
 
-            return sample[0];
-    }
+	/*
+	 * Sensors now return floats using a uniform protocol. Need to convert US result to an integer
+	 * [0,255] (non-Javadoc)
+	 * 
+	 * @see java.lang.Thread#run()
+	 */
+	public void run() {
+		while (cont.isRunning()) {
+			
+			if (cont.getLock() != null) {
+				Object lock = cont.getLock();
+				synchronized(lock) {
+					try {
+						lock.wait();
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			}
+			
+			us.fetchSample(usData, 0); // acquire data
+			distance = (int)(usData[0] * 100.0); // extract from buffer, cast to int
+			cont.process(distance); // now take action depending on value
+			try {
+				Thread.sleep(15);
+			} catch (Exception e) {
+			} // Poor man's timed sampling
+		}
+	}
 
-    /**
-     * Get range (distance) to object detected by UltraSonic sensor.
-     * @return Distance in meters. Only one distance value is returned.
-     */
-    @Override
-    public float[] getRanges()
-    {
-            sp.fetchSample(sample, 0);
-
-            return sample;
-    }
-    
-    /**
-     * Determine if UltraSonic sensor is enabled.
-     * @return True if enabled, false if not.
-     */
-    public boolean isEnabled()
-    {
-        return sensor.isEnabled();
-    }
-    
-    /**
-     * Enable UltraSonic sensor.
-     */
-    public void enable()
-    {
-        sensor.enable();
-    }
-    
-    /**
-     * Disable UltraSonic sensor.
-     */
-    public void disable()
-    {
-        sensor.disable();
-    }
-    
-    /**
-     * Release resources.
-     */
-    public void close()
-    {
-        sensor.close();
-    }
 }

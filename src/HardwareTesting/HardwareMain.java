@@ -37,7 +37,7 @@ public class HardwareMain {
 	public static final String TestsList[] = {"Motors", "US", "Line", "Color", "Gyro"};
 	
 	
-	public static void main(String[] args) {
+	public static void main(String[] args) throws OdometerExceptions {
 		// init thread to exit application
 		
 		Thread exitThread = new Thread() {
@@ -79,6 +79,26 @@ public class HardwareMain {
 			motorThread.start();
 			
 		}
+		else if(testChoice == 1){
+			  
+			Odometer odo = Odometer.getOdometer(leftMotor, rightMotor, WHEEL_BASE, WHEEL_RAD);
+			final Port usPort = LocalEV3.get().getPort("S4");
+			UARTSensor usSensor = new EV3ColorSensor(usPort);
+			SampleProvider usValue = usSensor.getMode("Distance");
+			USSensorTest usTest = new USSensorTest(odo);
+			UltrasonicPoller usPoller = new UltrasonicPoller(usValue, usTest);
+			Thread usThread = new Thread(usPoller);
+			usThread.start();
+		}
+		else if (testChoice == 2) { 
+			
+			final Port lsPort = LocalEV3.get().getPort("S1");
+			UARTSensor lsSensor = new EV3ColorSensor(lsPort);
+			SampleProvider lsValue = lsSensor.getMode("Red");
+			LineDetectionTesting lineTest = new LineDetectionTesting(lsValue, leftMotor, rightMotor, WHEEL_RAD, WHEEL_BASE);
+			Thread lineThread = new Thread(lineTest);
+			lineThread.start();
+		} 
 		else if (testChoice == 3) { 
 			
 			final Port csPort = LocalEV3.get().getPort("S3");
@@ -90,26 +110,8 @@ public class HardwareMain {
 			colorThread.start();
 			
 		}
-		else if(testChoice == 1){
-		  
-			final Port usPort = LocalEV3.get().getPort("S4");
-			USSensorTest usTest = new USSensorTest(usPort);
-			Thread usThread = new Thread(usTest);
-			usThread.start();
-		}
-		
-		else if (testChoice == 2) { 
+		else if (testChoice == 4) {
 			
-			final Port lsPort = LocalEV3.get().getPort("S1");
-			UARTSensor lsSensor = new EV3ColorSensor(lsPort);
-			SampleProvider lsValue = lsSensor.getMode("Red");
-			
-			LineDetectionTesting lineTest = new LineDetectionTesting(lsValue, leftMotor, rightMotor, WHEEL_RAD, WHEEL_BASE);
-			
-			
-			Thread lineThread = new Thread(lineTest);
-			lineThread.start();
-		} else if (testChoice == 4) {
 			Port gyroPort = LocalEV3.get().getPort("S2");
 			EV3GyroSensor gyroSensor = new EV3GyroSensor(gyroPort);
 			SampleProvider gyroValue = gyroSensor.getMode("Angle");
